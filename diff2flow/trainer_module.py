@@ -18,7 +18,7 @@ from diff2flow.helpers import resize_ims
 from diff2flow.helpers import instantiate_from_config
 from diff2flow.helpers import load_partial_from_config
 
-from diff2flow.lora import LoraLinear, LoRAConv # LoRA
+from diff2flow.lora import LoraLinear, LoRAConv, DualDomainAdapter # LoRA
 from diff2flow.lora import LoRAAdapterConv, DataProvider # LoRAAdapter
 from diff2flow.lora import getattr_recursive, setattr_recursive
 
@@ -125,6 +125,10 @@ class TrainerModuleLatentFM(LightningModule):
                 import warnings
                 warnings.warn("Using first stage with scale_factor=1.0")
         else:
+            # FIX: 初始化 scale_factor 默认值，防止 AttributeError
+            if not hasattr(self, 'scale_factor'):
+                self.scale_factor = 1.0
+            
             if self.scale_factor != 1.0:
                 raise ValueError("Cannot use scale_factor with identity first stage")
             self.first_stage = None
@@ -363,6 +367,16 @@ class TrainerModuleLatentFM(LightningModule):
                                     ),
                         lora_scale,
                     )
+                elif self.lora_type == "dual_domain":
+                    ll = DualDomainAdapter(
+                        conv_module.in_channels,
+                        conv_module.out_channels,
+                        conv_module.kernel_size,
+                        conv_module.stride,
+                        conv_module.padding,
+                        lora_cfg_cp.get("lora_conv_rank", 16),
+                        lora_scale,
+                    )
                 elif self.lora_type == "lora_adapter":
                     ll = LoRAAdapterConv(
                         conv_module.in_channels,
@@ -599,7 +613,8 @@ class TrainerModuleLatentFM(LightningModule):
         x1_pred = self.decode_first_stage(x1_latent_pred)
 
         """ metrics """
-        self.metric_tracker(x1, x1_pred)
+        if self.metric_tracker is not None:
+            self.metric_tracker(x1, x1_pred)
 
         if self.stop_training:
             self.stop_training_method()

@@ -1,4 +1,5 @@
 import os
+os.environ["CUDA_VISIBLE_DEVICES"] = "4"
 import sys
 import hydra
 import wandb
@@ -255,7 +256,8 @@ def main(cfg: DictConfig):
     """ Train """
     ckpt_path = cfg.resume_checkpoint if exists(cfg.resume_checkpoint) else None
     if exists(cfg.load_weights):
-        module = load_model_weights(module, cfg.load_weights, strict=True)
+        print(f"Loading weights from {cfg.load_weights} with strict=False for Architecture Innovation...")
+        module = load_model_weights(module, cfg.load_weights, strict=False)
     if exists(cfg.load_lora_weights):
         module = load_lora_weights(module, cfg.load_lora_weights, strict=False)
     trainer.fit(module, data, ckpt_path=ckpt_path)

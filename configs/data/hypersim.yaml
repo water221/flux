@@ -2,7 +2,7 @@ name: Hypersim
 target: diff2flow.dataloader.WebDataModuleFromConfig
 params:
   tar_base:
-    - /export/storage/
+    - /home/zhutianshui/workspace/demoProjects/flux/data/hypersim
     - /p/scratch/degeai/datasets/
     - /export/compvis-nfs/user/jfischer/dataset/   # only debugging
   batch_size: 8
@@ -19,14 +19,15 @@ params:
     - original_depth.npy
   train:
     # shards: hypersim-image-depth-latents/train-{000182..000183}.tar     # debug
-    shards: hypersim-image-depth-latents/train-{000000..000634}.tar
+    # shards: hypersim-image-depth-latents/train-{000000..000634}.tar
+    shards: hypersim-train/train-{000001..000614}.tar
     shuffle: 100
     image_key: image.png
     rename:
       x0: image.png
-      x0_latent: image_latent.npy
+      # x0_latent: image_latent.npy
       x1: depth.npy
-      x1_latent: depth_latent.npy
+      # x1_latent: depth_latent.npy
     dataset_transforms:
       target: diff2flow.dataset.depth_preprocessing.DatasetPreprocessor
       params:
@@ -39,13 +40,14 @@ params:
           - x1_latent
 
   validation:
-    shards: hypersim-image-depth-latents/val-{000060..000079}.tar
+    # shards: hypersim-image-depth-latents/val-{000060..000079}.tar
+    shards: test-val/val-{000070..000075}.tar
     image_key: image.png
     rename:
       x0: image.png
-      x0_latent: image_latent.npy
+      # x0_latent: image_latent.npy
       x1: depth.npy
-      x1_latent: depth_latent.npy
+      # x1_latent: depth_latent.npy
     dataset_transforms:
       target: diff2flow.dataset.depth_preprocessing.DatasetPreprocessor
       params:

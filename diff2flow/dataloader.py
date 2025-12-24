@@ -169,6 +169,18 @@ class WebDataModuleFromConfig(pl.LightningDataModule):
         # change name of image key to be consistent with other datasets
         renaming = dataset_config.get('rename', None)
         if renaming is not None:
+            # FIX: Filter out samples that miss required keys to avoid crash in rename
+            def filter_missing_keys(sample):
+                # renaming maps: new_key -> old_key
+                # We need to check if old_key exists in sample
+                required_keys = list(renaming.values())
+                missing_keys = [k for k in required_keys if k not in sample]
+                if len(missing_keys) > 0:
+                    print(f"[Data Warning] Skipping sample {sample.get('__key__', 'unknown')} (URL: {sample.get('__url__', 'unknown')}). Missing keys: {missing_keys}. Available: {list(sample.keys())}")
+                    return False
+                return True
+            
+            dset = dset.select(filter_missing_keys)
             dset = dset.rename(**renaming)
 
         if dataset_transforms is not None:

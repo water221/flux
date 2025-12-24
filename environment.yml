@@ -1,4 +1,4 @@
-name: d2f
+name: flux
 channels:
   - pytorch
   - nvidia

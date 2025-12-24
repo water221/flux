@@ -1,6 +1,8 @@
 import torch
 from torch import nn
 from typing import Union, Tuple, Any
+import math
+import torch.fft
 
 def getattr_recursive(obj: Any, path: str) -> Any:
     parts = path.split('.')
@@ -169,3 +171,98 @@ class LoRAAdapterConv(nn.Module):
         b_out = self.B(a_cond)
 
         return w_out + b_out * self.lora_scale
+class SpectralGating(nn.Module):
+    """
+    频域门控模块：实现全局特征混合
+    理论依据：Global Filter Networks
+    """
+    def __init__(self, dim, h=None, w=None):
+        super().__init__()
+        self.dim = dim
+        # 使用复数权重，因为 FFT 结果是复数
+        # 这里的 scale 初始化很小，保证初始状态接近恒等映射，利于训练稳定
+        self.complex_weight = nn.Parameter(torch.randn(dim, 2, dtype=torch.float32) * 0.02)
+
+    def forward(self, x):
+        # x: (B, C, H, W)
+        B, C, H, W = x.shape
+        
+        # 1. 2D FFT
+        # rfft2 只计算一半的频率，节省空间 (针对实数输入)
+        x_fft = torch.fft.rfft2(x, norm='ortho')
+        
+        # 2. 频谱滤波 (Spectral Gating)
+        # 将权重扩展以匹配广播机制
+        weight = torch.view_as_complex(self.complex_weight)
+        weight = weight.view(1, C, 1, 1)
+        
+        # 频域乘法 = 空间域全局卷积
+        x_fft = x_fft * weight
+        
+        # 3. 2D IFFT
+        x = torch.fft.irfft2(x_fft, s=(H, W), norm='ortho')
+        return x
+
+class DualDomainAdapter(nn.Module):
+    """
+    创新点核心：双域流形适配器
+    结合了 LoRA 的低秩特性和频域的全局感知能力
+    """
+    def __init__(
+        self,
+        in_channels: int,
+        out_channels: int,
+        kernel_size: Union[int, Tuple[int, int]],
+        stride: Union[int, Tuple[int, int]],
+        padding: Union[int, Tuple[int, int]],
+        rank: int = 16, # 建议稍微增大 rank 以容纳频域信息
+        lora_scale: float = 1.0,
+    ):
+        super().__init__()
+        self.lora_scale = lora_scale
+
+        # 1. 冻结的原始权重 (SD2.1 Pretrained)
+        self.W = nn.Conv2d(in_channels, out_channels, kernel_size, stride, padding)
+        for p in self.W.parameters():
+            p.requires_grad_(False)
+
+        # 2. 空间路径 (Spatial Path) - 类似于标准 LoRA
+        # 捕捉高频细节 (Edges)
+        self.spatial_down = nn.Conv2d(in_channels, rank, kernel_size, stride, padding, bias=False)
+        self.spatial_up = nn.Conv2d(rank, out_channels, 1, 1, 0, bias=False)
+
+        # 3. 频谱路径 (Spectral Path) - 创新部分
+        # 捕捉低频/全局结构 (Global Structure)
+        # 使用 1x1 卷积降维，然后进 FFT，再升维
+        # FIX: 必须使用 stride 以匹配空间路径的下采样
+        self.spectral_down = nn.Conv2d(in_channels, rank, 1, stride, 0, bias=False)
+        self.spectral_gate = SpectralGating(rank)
+        self.spectral_up = nn.Conv2d(rank, out_channels, 1, 1, 0, bias=False)
+
+        # 4. 融合系数 (可学习)
+        self.alpha_spatial = nn.Parameter(torch.tensor(1.0))
+        self.alpha_spectral = nn.Parameter(torch.tensor(1.0))
+
+        # 初始化
+        nn.init.kaiming_uniform_(self.spatial_down.weight, a=math.sqrt(5))
+        nn.init.zeros_(self.spatial_up.weight)
+        nn.init.kaiming_uniform_(self.spectral_down.weight, a=math.sqrt(5))
+        nn.init.zeros_(self.spectral_up.weight)
+
+    def forward(self, x):
+        # 原始路径
+        w_out = self.W(x)
+        
+        # 空间路径
+        s_down = self.spatial_down(x)
+        s_out = self.spatial_up(s_down)
+        
+        # 频谱路径
+        f_down = self.spectral_down(x) # (B, rank, H, W)
+        f_gated = self.spectral_gate(f_down) # FFT -> Gate -> IFFT
+        f_out = self.spectral_up(f_gated)
+        
+        # 融合输出
+        adapter_out = (self.alpha_spatial * s_out) + (self.alpha_spectral * f_out)
+        
+        return w_out + adapter_out * self.lora_scale
