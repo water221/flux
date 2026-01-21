@@ -834,6 +834,16 @@ class UNetModel(nn.Module):
         t_emb = timestep_embedding(t, self.model_channels, repeat_only=False)
         emb = self.time_embed(t_emb)
 
+        # =============================================================================
+        # zw [创新点 3 辅助] 设置全局时间嵌入上下文
+        # 用于 TimeAwareDualAdapter 动态调整双域融合权重
+        # =============================================================================
+        try:
+            import diff2flow.lora as lora_module
+            lora_module.CURRENT_TIME_EMB = emb
+        except ImportError:
+            pass
+
         if self.num_classes is not None:
             assert y.shape[0] == x.shape[0]
             emb = emb + self.label_emb(y)
@@ -849,6 +859,14 @@ class UNetModel(nn.Module):
             h = th.cat([h, hs.pop()], dim=1)
             h = module(h, emb, context_ca)
         h = h.type(x.dtype)
+
+        # zw [创新点 3 辅助] 清理全局时间嵌入上下文
+        try:
+            import diff2flow.lora as lora_module
+            lora_module.CURRENT_TIME_EMB = None
+        except ImportError:
+            pass
+
         if self.predict_codebook_ids:
             return self.id_predictor(h)
         else:

@@ -41,7 +41,7 @@ params:
 
   validation:
     # shards: hypersim-image-depth-latents/val-{000060..000079}.tar
-    shards: test-val/val-{000070..000075}.tar
+    shards: test-val/val-{000000..000075}.tar
     image_key: image.png
     rename:
       x0: image.png

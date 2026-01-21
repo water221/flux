@@ -21,6 +21,9 @@ from diff2flow.helpers import load_partial_from_config
 from diff2flow.lora import LoraLinear, LoRAConv, DualDomainAdapter # LoRA
 from diff2flow.lora import LoRAAdapterConv, DataProvider # LoRAAdapter
 from diff2flow.lora import getattr_recursive, setattr_recursive
+# zw [创新点 3] 导入 TimeAwareDualAdapter 和全局时间嵌入上下文
+from diff2flow.lora import TimeAwareDualAdapter
+import diff2flow.lora as lora_module  # 用于设置全局时间嵌入
 
 from diff2flow.diffusion import ForwardDiffusion
 
@@ -376,6 +379,19 @@ class TrainerModuleLatentFM(LightningModule):
                         conv_module.padding,
                         lora_cfg_cp.get("lora_conv_rank", 16),
                         lora_scale,
+                    )
+                # zw [创新点 3] 添加 time_aware_dual 类型支持
+                # 集成了频域门控、跨域交互和时间感知门控
+                elif self.lora_type == "time_aware_dual":
+                    ll = TimeAwareDualAdapter(
+                        conv_module.in_channels,
+                        conv_module.out_channels,
+                        conv_module.kernel_size,
+                        conv_module.stride,
+                        conv_module.padding,
+                        rank=lora_cfg_cp.get("lora_conv_rank", 16),
+                        lora_scale=lora_scale,
+                        t_emb_dim=lora_cfg_cp.get("t_emb_dim", 1280),  # SD2.1 默认值
                     )
                 elif self.lora_type == "lora_adapter":
                     ll = LoRAAdapterConv(

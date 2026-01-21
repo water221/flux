@@ -20,3 +20,9 @@ num_sanity_val_steps=-1: 运行完整的验证集循环。这样，Lightning 会
 
 
 
+
+# 添加所有创新点后
+运行命令
+```
+python train.py experiment=img2depth/obj_base data=hypersim lora=c0.2_fullA0.2_FL lora.lora_cfg.lora_type=time_aware_dual lora.lora_cfg.lora_conv=16
+```

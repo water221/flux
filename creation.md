@@ -8,9 +8,7 @@
 结合 SD2.1：将其作为“插件”插入到 UNet 的 ResNet 块或 Attention 块旁，不破坏原有权重。
 创新点 2：频域感知的最优传输流匹配 (Frequency-Aware Optimal Transport Flow) —— 优化目标创新
 痛点：标准的 Flow Matching 假设噪声到数据的轨迹是直线（Straight Path）。但在图像生成中，低频内容（轮廓）通常比高频内容（细节）先收敛。强行让所有频率同步演化并非最优。
-方案：提出一种分频流匹配策略。在训练时，将向量场 
-vt分解为低频和高频分量。为低频分量设计更平滑的 ODE 轨迹，为高频分量设计更激进的轨迹，或者在 Loss 中根据时间步
-t 动态调整不同频率的权重。
+方案：提出一种分频流匹配策略。在训练时，将向量场 vt分解为低频和高频分量。为低频分量设计更平滑的 ODE 轨迹，为高频分量设计更激进的轨迹，或者在 Loss 中根据时间步t 动态调整不同频率的权重。
 理论支撑：DiffFlow (ICLR 2024) 和 FreeU (CVPR 2024) 均探讨了特征通道/频率对生成质量的不同贡献。
 创新点 3：基于相位的几何一致性约束 (Phase-Based Geometric Consistency) —— 物理约束创新
 痛点：深度估计容易出现“平移不变性”丢失，即物体边缘模糊。
@@ -301,3 +299,16 @@ spectral
 → 双域融合达到最佳效果。”
 
 
+# 创新点2
+为了确保护创新点 2 符合 SCI 论文的描述（动态权重、频率分解），建议在 flow_obj.py 中按以下方式修改。这种方式使用拉普拉斯金字塔原理进行频率分解，计算效率极高，且能保持与原代码一致的输出格式：
+虽然直接运行命令可行，但为了在论文中进行消融实验（Ablation Study），建议你稍后在 FlowModelObj 的 __init__ 中增加一个 use_freq_loss 参数。这样你可以通过以下方式对比实验：
+
+有创新点 2：python [train.py](http://_vscodecontentref_/7) ... model.use_freq_loss=True
+无创新点 2：python [train.py](http://_vscodecontentref_/8) ... model.use_freq_loss=False
+这样在写论文时，你就能拿出两组数据来证明“频域感知损失”确实让深度图的边缘更锐利或几何结构更准确。
+效果：模型会根据训练的时间点，自动平衡“抓大放小”（早期重结构，后期重细节）的学习策略。
+
+参数完整性：__init__ 中已添加 use_freq_loss，并正确调用 super().__init__。
+代码闭合：删除了冗余注释，确保 if 分支和损失计算逻辑完整闭合。
+计算逻辑：使用 F.interpolate 和 F.avg_pool2d 构建了一个高性能的低通滤波器，符合拉普拉斯金字塔（Laplacian Pyramid）提取高频残差的思想。
+维度匹配：t_w 已通过 view(-1, 1, 1, 1) 进行广播，确保与特征图维度匹配。

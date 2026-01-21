@@ -1,8 +1,17 @@
 import torch
 from torch import nn
+import torch.nn.functional as F
 from typing import Union, Tuple, Any
 import math
 import torch.fft
+
+# =============================================================================
+# zw [创新点 3 辅助组件] 全局时间嵌入上下文
+# 用于在 TimeAwareDualAdapter 中传递时间嵌入信息
+# 使用 Context Manager 方式避免修改复杂的 UNet 递归调用结构
+# =============================================================================
+CURRENT_TIME_EMB = None
+
 
 def getattr_recursive(obj: Any, path: str) -> Any:
     parts = path.split('.')
@@ -171,6 +180,11 @@ class LoRAAdapterConv(nn.Module):
         b_out = self.B(a_cond)
 
         return w_out + b_out * self.lora_scale
+# =============================================================================
+# zw [创新点 1 核心组件] 频域门控模块
+# 理论依据：Global Filter Networks
+# 利用 FFT 实现全局特征混合，捕捉长距离依赖
+# =============================================================================
 class SpectralGating(nn.Module):
     """
     频域门控模块：实现全局特征混合
@@ -202,6 +216,45 @@ class SpectralGating(nn.Module):
         # 3. 2D IFFT
         x = torch.fft.irfft2(x_fft, s=(H, W), norm='ortho')
         return x
+
+
+# =============================================================================
+# zw [创新点 2 核心组件] 跨域交互模块
+# 解决空域和频域特征割裂问题，通过 Attention Map 进行相互校准
+# =============================================================================
+class CrossDomainInteraction(nn.Module):
+    """
+    跨域交互模块：解决空域和频域特征割裂问题
+    通过 Attention Map 进行双域特征的相互校准
+    """
+    def __init__(self, dim):
+        super().__init__()
+        # 降维生成门控系数，降低计算量
+        self.reduce = nn.Conv2d(dim * 2, dim, 1)
+        self.sigmoid = nn.Sigmoid()
+
+    def forward(self, spatial_f, spectral_f):
+        """
+        Args:
+            spatial_f: 空间域特征 (B, C, H, W)
+            spectral_f: 频域特征 (B, C, H, W)
+        Returns:
+            spatial_refined: 校准后的空间域特征
+            spectral_refined: 校准后的频域特征
+        """
+        # 1. 拼接双域特征
+        combined = torch.cat([spatial_f, spectral_f], dim=1)
+        
+        # 2. 生成交互门控 (Attention Map)
+        gate = self.sigmoid(self.reduce(combined))
+        
+        # 3. 相互校准 (Rectification)
+        # 频域全局信息 -> 抑制空域噪声 (gate)
+        # 空域局部细节 -> 补充频域边界 (1 - gate)
+        spatial_refined = spatial_f * gate
+        spectral_refined = spectral_f * (1 - gate)
+        
+        return spatial_refined, spectral_refined
 
 class DualDomainAdapter(nn.Module):
     """
@@ -265,4 +318,124 @@ class DualDomainAdapter(nn.Module):
         # 融合输出
         adapter_out = (self.alpha_spatial * s_out) + (self.alpha_spectral * f_out)
         
+        return w_out + adapter_out * self.lora_scale
+
+
+# =============================================================================
+# zw [创新点 3 集成] 时间感知双域适配器 (TimeAwareDualAdapter)
+# 集成了以下创新点：
+#   - 创新点 1: 频域门控 (SpectralGating)
+#   - 创新点 2: 跨域交互 (CrossDomainInteraction)
+#   - 创新点 3: 时间感知动态门控 (Time-Aware Gating)
+# 根据扩散时间步 t 动态调整频域和空域的融合权重
+# =============================================================================
+class TimeAwareDualAdapter(nn.Module):
+    """
+    时间感知双域适配器
+    集成了 Dual-Domain, CrossDomainInteraction 和 Time-Gating
+    
+    Args:
+        in_channels: 输入通道数
+        out_channels: 输出通道数
+        kernel_size: 卷积核大小
+        stride: 步长
+        padding: 填充
+        rank: LoRA 秩
+        lora_scale: LoRA 缩放因子
+        t_emb_dim: 时间嵌入维度 (SD2.1 通常为 1280)
+    """
+    def __init__(
+        self,
+        in_channels: int,
+        out_channels: int,
+        kernel_size: Union[int, Tuple[int, int]],
+        stride: Union[int, Tuple[int, int]],
+        padding: Union[int, Tuple[int, int]],
+        rank: int = 16,
+        lora_scale: float = 1.0,
+        t_emb_dim: int = 1280  # SD2.1 的时间嵌入维度
+    ):
+        super().__init__()
+        self.lora_scale = lora_scale
+        self.t_emb_dim = t_emb_dim
+
+        # --- 原始路径 (冻结) ---
+        self.W = nn.Conv2d(in_channels, out_channels, kernel_size, stride, padding)
+        for p in self.W.parameters():
+            p.requires_grad_(False)
+
+        # --- 降维路径 ---
+        # 1. 空间路径 (Spatial): 使用标准卷积捕捉局部特征
+        self.spatial_down = nn.Conv2d(in_channels, rank, kernel_size, stride, padding, bias=False)
+        # 2. 频谱路径 (Spectral): 使用 1x1 卷积配合 stride 降维，随后进 FFT
+        self.spectral_down = nn.Conv2d(in_channels, rank, 1, stride, 0, bias=False)
+
+        # --- 核心处理模块 ---
+        # 创新点 1: 频域门控
+        self.spectral_gate = SpectralGating(rank)
+        # 创新点 2: 跨域交互
+        self.interaction = CrossDomainInteraction(rank)
+
+        # --- 升维路径 ---
+        self.spatial_up = nn.Conv2d(rank, out_channels, 1, 1, 0, bias=False)
+        self.spectral_up = nn.Conv2d(rank, out_channels, 1, 1, 0, bias=False)
+
+        # --- 时间感知门控 (Time-Aware Gating) ---
+        # 根据 t_emb 动态预测双域融合权重
+        self.time_mlp = nn.Sequential(
+            nn.SiLU(),
+            nn.Linear(t_emb_dim, 2)
+        )
+
+        # --- 初始化 ---
+        nn.init.kaiming_uniform_(self.spatial_down.weight, a=math.sqrt(5))
+        nn.init.zeros_(self.spatial_up.weight)
+        nn.init.kaiming_uniform_(self.spectral_down.weight, a=math.sqrt(5))
+        nn.init.zeros_(self.spectral_up.weight)
+
+    def forward(self, x, t_emb=None):
+        """
+        前向传播
+        
+        Args:
+            x: 输入特征图 (B, C, H, W)
+            t_emb: 时间步嵌入向量 (B, t_emb_dim)。如果为 None，则尝试从全局变量获取。
+        
+        Returns:
+            融合后的输出特征
+        """
+        # 尝试从全局变量获取时间嵌入
+        if t_emb is None:
+            t_emb = CURRENT_TIME_EMB
+
+        # 1. 原始权重输出
+        w_out = self.W(x)
+
+        # 2. 降维
+        s_feat = self.spatial_down(x)
+        f_feat = self.spectral_down(x)
+
+        # 3. 频域处理 (创新点 1)
+        f_feat = self.spectral_gate(f_feat)
+
+        # 4. 跨域交互 (创新点 2)
+        s_refined, f_refined = self.interaction(s_feat, f_feat)
+
+        # 5. 升维
+        s_out = self.spatial_up(s_refined)
+        f_out = self.spectral_up(f_refined)
+
+        # 6. 动态融合 (创新点 3: 时间感知门控)
+        if t_emb is not None:
+            # 预测权重: (B, 2) -> 分别获取空域和频域的权重
+            weights = self.time_mlp(t_emb)  # (B, 2)
+            # 使用 Sigmoid * 2 将权重限制在 [0, 2] 之间
+            alpha_s = (torch.sigmoid(weights[:, 0]) * 2.0).view(-1, 1, 1, 1)
+            alpha_f = (torch.sigmoid(weights[:, 1]) * 2.0).view(-1, 1, 1, 1)
+        else:
+            # 兼容性 Fallback: 使用静态权重
+            alpha_s, alpha_f = 1.0, 1.0
+
+        adapter_out = (alpha_s * s_out) + (alpha_f * f_out)
+
         return w_out + adapter_out * self.lora_scale
