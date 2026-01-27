@@ -16,12 +16,53 @@ from diff2flow.visualizer import per_sample_min_max_normalization
 
 class PatchedTrainer(TrainerModuleLatentFM):
     def validation_step(self, batch, batch_idx):
+        # Clear logs before first batch
+        if batch_idx == 0:
+            import diff2flow.lora
+            try:
+                diff2flow.lora.ALPHA_LOGS.clear()
+            except:
+                pass
+
         # Inject dummy conditioning for CrossAttention (1024 dim)
         # We use a key "dummy_cond" and ensure it's available
         # x1 is the target image, so we use its batch size
         batch_size = batch["x1"].shape[0]
         batch["dummy_cond"] = torch.zeros(batch_size, 1, 1024, device=self.device)
-        return super().validation_step(batch, batch_idx)
+        
+        res = super().validation_step(batch, batch_idx)
+        
+        # Save logs after batch 0
+        if batch_idx == 0:
+             import diff2flow.lora
+             import numpy as np
+             import csv
+             try:
+                 logs = diff2flow.lora.ALPHA_LOGS
+                 print(f"Saving alpha logs with {len(logs)} entries")
+                 np.save("alpha_logs.npy", logs)
+
+                 # Calculate steps and layers
+                 total_entries = len(logs)
+                 sampling_steps = getattr(self, 'sampling_steps', 50)
+                 if total_entries > 0 and total_entries % sampling_steps == 0:
+                     layers_per_step = total_entries // sampling_steps
+                 else:
+                     layers_per_step = -1 # Unknown or partial
+                 
+                 with open("alpha_logs.csv", "w", newline="") as f:
+                     writer = csv.writer(f)
+                     writer.writerow(["index", "step_estimated", "layer_estimated", "alpha_s", "alpha_f"])
+                     for i, entry in enumerate(logs):
+                         step = i // layers_per_step if layers_per_step > 0 else -1
+                         layer = i % layers_per_step if layers_per_step > 0 else -1
+                         writer.writerow([i, step, layer, entry['alpha_s'], entry['alpha_f']])
+                 print("Saved alpha_logs.csv")
+
+             except Exception as e:
+                 print(f"Failed to save alpha logs: {e}")
+        
+        return res
 
     def evaluate_and_visualize_batch(self, batch, prefix="train"):
         # Override to save images to disk instead of using logger

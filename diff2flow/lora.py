@@ -11,6 +11,7 @@ import torch.fft
 # 使用 Context Manager 方式避免修改复杂的 UNet 递归调用结构
 # =============================================================================
 CURRENT_TIME_EMB = None
+ALPHA_LOGS = []
 
 
 def getattr_recursive(obj: Any, path: str) -> Any:
@@ -432,6 +433,17 @@ class TimeAwareDualAdapter(nn.Module):
             # 使用 Sigmoid * 2 将权重限制在 [0, 2] 之间
             alpha_s = (torch.sigmoid(weights[:, 0]) * 2.0).view(-1, 1, 1, 1)
             alpha_f = (torch.sigmoid(weights[:, 1]) * 2.0).view(-1, 1, 1, 1)
+
+            # LOGGING for visualization
+            if not self.training:
+                global ALPHA_LOGS
+                try:
+                    ALPHA_LOGS.append({
+                        'alpha_s': alpha_s.mean().item(),
+                        'alpha_f': alpha_f.mean().item()
+                    })
+                except:
+                    pass
         else:
             # 兼容性 Fallback: 使用静态权重
             alpha_s, alpha_f = 1.0, 1.0

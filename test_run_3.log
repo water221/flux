@@ -1,0 +1,193 @@
+/mnt/workspace/zhutianshui/demoProjects/flux/diff2flow/flow_obj.py:92: RuntimeWarning: divide by zero encountered in divide
+  self.register_buffer('sqrt_recip_alphas_cumprod', to_torch(np.sqrt(1. / alphas_cumprod)))
+/mnt/workspace/zhutianshui/demoProjects/flux/diff2flow/flow_obj.py:93: RuntimeWarning: divide by zero encountered in divide
+  self.register_buffer('sqrt_recipm1_alphas_cumprod', to_torch(np.sqrt(1. / alphas_cumprod - 1)))
+/home/zhutianshui/miniconda3/envs/flux/lib/python3.11/site-packages/torch/_utils.py:831: UserWarning: TypedStorage is deprecated. It will be removed in the future and UntypedStorage will be the only storage class. This should only matter to you if you are using storages directly.  To access UntypedStorage directly, use tensor.untyped_storage() instead of tensor.storage()
+  return self.fget.__get__(instance, owner)()
+Loading Data: diff2flow.dataloader.WebDataModuleFromConfig
+[WebDataModuleFromConfig] Setting tar base to /home/zhutianshui/workspace/demoProjects/flux/data/hypersim
+Configuring First Stage (Autoencoder)...
+Forcing concat_context=True for 8-channel input...
+[OpenAIUNet] Creating Model
+[OpenAIUNet] Loading checkpoint from checkpoints/v2-1_768-ema-pruned.ckpt
+Adding convolutional LoRA to net.input_blocks.1.0.in_layers.2.weight
+Adding convolutional LoRA to net.input_blocks.1.0.out_layers.3.weight
+Adding attention LoRA to net.input_blocks.1.1.transformer_blocks.0.attn1.to_q.weight
+Adding attention LoRA to net.input_blocks.1.1.transformer_blocks.0.attn1.to_k.weight
+Adding attention LoRA to net.input_blocks.1.1.transformer_blocks.0.attn1.to_v.weight
+Adding attention LoRA to net.input_blocks.1.1.transformer_blocks.0.attn2.to_q.weight
+Adding attention LoRA to net.input_blocks.1.1.transformer_blocks.0.attn2.to_k.weight
+Adding attention LoRA to net.input_blocks.1.1.transformer_blocks.0.attn2.to_v.weight
+Adding convolutional LoRA to net.input_blocks.2.0.in_layers.2.weight
+Adding convolutional LoRA to net.input_blocks.2.0.out_layers.3.weight
+Adding attention LoRA to net.input_blocks.2.1.transformer_blocks.0.attn1.to_q.weight
+Adding attention LoRA to net.input_blocks.2.1.transformer_blocks.0.attn1.to_k.weight
+Adding attention LoRA to net.input_blocks.2.1.transformer_blocks.0.attn1.to_v.weight
+Adding attention LoRA to net.input_blocks.2.1.transformer_blocks.0.attn2.to_q.weight
+Adding attention LoRA to net.input_blocks.2.1.transformer_blocks.0.attn2.to_k.weight
+Adding attention LoRA to net.input_blocks.2.1.transformer_blocks.0.attn2.to_v.weight
+Adding convolutional LoRA to net.input_blocks.3.0.op.weight
+Adding convolutional LoRA to net.input_blocks.4.0.in_layers.2.weight
+Adding convolutional LoRA to net.input_blocks.4.0.out_layers.3.weight
+Adding convolutional LoRA to net.input_blocks.4.0.skip_connection.weight
+Adding attention LoRA to net.input_blocks.4.1.transformer_blocks.0.attn1.to_q.weight
+Adding attention LoRA to net.input_blocks.4.1.transformer_blocks.0.attn1.to_k.weight
+Adding attention LoRA to net.input_blocks.4.1.transformer_blocks.0.attn1.to_v.weight
+Adding attention LoRA to net.input_blocks.4.1.transformer_blocks.0.attn2.to_q.weight
+Adding attention LoRA to net.input_blocks.4.1.transformer_blocks.0.attn2.to_k.weight
+Adding attention LoRA to net.input_blocks.4.1.transformer_blocks.0.attn2.to_v.weight
+Adding convolutional LoRA to net.input_blocks.5.0.in_layers.2.weight
+Adding convolutional LoRA to net.input_blocks.5.0.out_layers.3.weight
+Adding attention LoRA to net.input_blocks.5.1.transformer_blocks.0.attn1.to_q.weight
+Adding attention LoRA to net.input_blocks.5.1.transformer_blocks.0.attn1.to_k.weight
+Adding attention LoRA to net.input_blocks.5.1.transformer_blocks.0.attn1.to_v.weight
+Adding attention LoRA to net.input_blocks.5.1.transformer_blocks.0.attn2.to_q.weight
+Adding attention LoRA to net.input_blocks.5.1.transformer_blocks.0.attn2.to_k.weight
+Adding attention LoRA to net.input_blocks.5.1.transformer_blocks.0.attn2.to_v.weight
+Adding convolutional LoRA to net.input_blocks.6.0.op.weight
+Adding convolutional LoRA to net.input_blocks.7.0.in_layers.2.weight
+Adding convolutional LoRA to net.input_blocks.7.0.out_layers.3.weight
+Adding convolutional LoRA to net.input_blocks.7.0.skip_connection.weight
+Adding attention LoRA to net.input_blocks.7.1.transformer_blocks.0.attn1.to_q.weight
+Adding attention LoRA to net.input_blocks.7.1.transformer_blocks.0.attn1.to_k.weight
+Adding attention LoRA to net.input_blocks.7.1.transformer_blocks.0.attn1.to_v.weight
+Adding attention LoRA to net.input_blocks.7.1.transformer_blocks.0.attn2.to_q.weight
+Adding attention LoRA to net.input_blocks.7.1.transformer_blocks.0.attn2.to_k.weight
+Adding attention LoRA to net.input_blocks.7.1.transformer_blocks.0.attn2.to_v.weight
+Adding convolutional LoRA to net.input_blocks.8.0.in_layers.2.weight
+Adding convolutional LoRA to net.input_blocks.8.0.out_layers.3.weight
+Adding attention LoRA to net.input_blocks.8.1.transformer_blocks.0.attn1.to_q.weight
+Adding attention LoRA to net.input_blocks.8.1.transformer_blocks.0.attn1.to_k.weight
+Adding attention LoRA to net.input_blocks.8.1.transformer_blocks.0.attn1.to_v.weight
+Adding attention LoRA to net.input_blocks.8.1.transformer_blocks.0.attn2.to_q.weight
+Adding attention LoRA to net.input_blocks.8.1.transformer_blocks.0.attn2.to_k.weight
+Adding attention LoRA to net.input_blocks.8.1.transformer_blocks.0.attn2.to_v.weight
+Adding convolutional LoRA to net.input_blocks.9.0.op.weight
+Adding convolutional LoRA to net.input_blocks.10.0.in_layers.2.weight
+Adding convolutional LoRA to net.input_blocks.10.0.out_layers.3.weight
+Adding convolutional LoRA to net.input_blocks.11.0.in_layers.2.weight
+Adding convolutional LoRA to net.input_blocks.11.0.out_layers.3.weight
+Adding convolutional LoRA to net.middle_block.0.in_layers.2.weight
+Adding convolutional LoRA to net.middle_block.0.out_layers.3.weight
+Adding attention LoRA to net.middle_block.1.transformer_blocks.0.attn1.to_q.weight
+Adding attention LoRA to net.middle_block.1.transformer_blocks.0.attn1.to_k.weight
+Adding attention LoRA to net.middle_block.1.transformer_blocks.0.attn1.to_v.weight
+Adding attention LoRA to net.middle_block.1.transformer_blocks.0.attn2.to_q.weight
+Adding attention LoRA to net.middle_block.1.transformer_blocks.0.attn2.to_k.weight
+Adding attention LoRA to net.middle_block.1.transformer_blocks.0.attn2.to_v.weight
+Adding convolutional LoRA to net.middle_block.2.in_layers.2.weight
+Adding convolutional LoRA to net.middle_block.2.out_layers.3.weight
+Adding convolutional LoRA to net.output_blocks.0.0.in_layers.2.weight
+Adding convolutional LoRA to net.output_blocks.0.0.out_layers.3.weight
+Adding convolutional LoRA to net.output_blocks.0.0.skip_connection.weight
+Adding convolutional LoRA to net.output_blocks.1.0.in_layers.2.weight
+Adding convolutional LoRA to net.output_blocks.1.0.out_layers.3.weight
+Adding convolutional LoRA to net.output_blocks.1.0.skip_connection.weight
+Adding convolutional LoRA to net.output_blocks.2.0.in_layers.2.weight
+Adding convolutional LoRA to net.output_blocks.2.0.out_layers.3.weight
+Adding convolutional LoRA to net.output_blocks.2.0.skip_connection.weight
+Adding convolutional LoRA to net.output_blocks.2.1.conv.weight
+Adding convolutional LoRA to net.output_blocks.3.0.in_layers.2.weight
+Adding convolutional LoRA to net.output_blocks.3.0.out_layers.3.weight
+Adding convolutional LoRA to net.output_blocks.3.0.skip_connection.weight
+Adding attention LoRA to net.output_blocks.3.1.transformer_blocks.0.attn1.to_q.weight
+Adding attention LoRA to net.output_blocks.3.1.transformer_blocks.0.attn1.to_k.weight
+Adding attention LoRA to net.output_blocks.3.1.transformer_blocks.0.attn1.to_v.weight
+Adding attention LoRA to net.output_blocks.3.1.transformer_blocks.0.attn2.to_q.weight
+Adding attention LoRA to net.output_blocks.3.1.transformer_blocks.0.attn2.to_k.weight
+Adding attention LoRA to net.output_blocks.3.1.transformer_blocks.0.attn2.to_v.weight
+Adding convolutional LoRA to net.output_blocks.4.0.in_layers.2.weight
+Adding convolutional LoRA to net.output_blocks.4.0.out_layers.3.weight
+Adding convolutional LoRA to net.output_blocks.4.0.skip_connection.weight
+Adding attention LoRA to net.output_blocks.4.1.transformer_blocks.0.attn1.to_q.weight
+Adding attention LoRA to net.output_blocks.4.1.transformer_blocks.0.attn1.to_k.weight
+Adding attention LoRA to net.output_blocks.4.1.transformer_blocks.0.attn1.to_v.weight
+Adding attention LoRA to net.output_blocks.4.1.transformer_blocks.0.attn2.to_q.weight
+Adding attention LoRA to net.output_blocks.4.1.transformer_blocks.0.attn2.to_k.weight
+Adding attention LoRA to net.output_blocks.4.1.transformer_blocks.0.attn2.to_v.weight
+Adding convolutional LoRA to net.output_blocks.5.0.in_layers.2.weight
+Adding convolutional LoRA to net.output_blocks.5.0.out_layers.3.weight
+Adding convolutional LoRA to net.output_blocks.5.0.skip_connection.weight
+Adding attention LoRA to net.output_blocks.5.1.transformer_blocks.0.attn1.to_q.weight
+Adding attention LoRA to net.output_blocks.5.1.transformer_blocks.0.attn1.to_k.weight
+Adding attention LoRA to net.output_blocks.5.1.transformer_blocks.0.attn1.to_v.weight
+Adding attention LoRA to net.output_blocks.5.1.transformer_blocks.0.attn2.to_q.weight
+Adding attention LoRA to net.output_blocks.5.1.transformer_blocks.0.attn2.to_k.weight
+Adding attention LoRA to net.output_blocks.5.1.transformer_blocks.0.attn2.to_v.weight
+Adding convolutional LoRA to net.output_blocks.5.2.conv.weight
+Adding convolutional LoRA to net.output_blocks.6.0.in_layers.2.weight
+Adding convolutional LoRA to net.output_blocks.6.0.out_layers.3.weight
+Adding convolutional LoRA to net.output_blocks.6.0.skip_connection.weight
+Adding attention LoRA to net.output_blocks.6.1.transformer_blocks.0.attn1.to_q.weight
+Adding attention LoRA to net.output_blocks.6.1.transformer_blocks.0.attn1.to_k.weight
+Adding attention LoRA to net.output_blocks.6.1.transformer_blocks.0.attn1.to_v.weight
+Adding attention LoRA to net.output_blocks.6.1.transformer_blocks.0.attn2.to_q.weight
+Adding attention LoRA to net.output_blocks.6.1.transformer_blocks.0.attn2.to_k.weight
+Adding attention LoRA to net.output_blocks.6.1.transformer_blocks.0.attn2.to_v.weight
+Adding convolutional LoRA to net.output_blocks.7.0.in_layers.2.weight
+Adding convolutional LoRA to net.output_blocks.7.0.out_layers.3.weight
+Adding convolutional LoRA to net.output_blocks.7.0.skip_connection.weight
+Adding attention LoRA to net.output_blocks.7.1.transformer_blocks.0.attn1.to_q.weight
+Adding attention LoRA to net.output_blocks.7.1.transformer_blocks.0.attn1.to_k.weight
+Adding attention LoRA to net.output_blocks.7.1.transformer_blocks.0.attn1.to_v.weight
+Adding attention LoRA to net.output_blocks.7.1.transformer_blocks.0.attn2.to_q.weight
+Adding attention LoRA to net.output_blocks.7.1.transformer_blocks.0.attn2.to_k.weight
+Adding attention LoRA to net.output_blocks.7.1.transformer_blocks.0.attn2.to_v.weight
+Adding convolutional LoRA to net.output_blocks.8.0.in_layers.2.weight
+Adding convolutional LoRA to net.output_blocks.8.0.out_layers.3.weight
+Adding convolutional LoRA to net.output_blocks.8.0.skip_connection.weight
+Adding attention LoRA to net.output_blocks.8.1.transformer_blocks.0.attn1.to_q.weight
+Adding attention LoRA to net.output_blocks.8.1.transformer_blocks.0.attn1.to_k.weight
+Adding attention LoRA to net.output_blocks.8.1.transformer_blocks.0.attn1.to_v.weight
+Adding attention LoRA to net.output_blocks.8.1.transformer_blocks.0.attn2.to_q.weight
+Adding attention LoRA to net.output_blocks.8.1.transformer_blocks.0.attn2.to_k.weight
+Adding attention LoRA to net.output_blocks.8.1.transformer_blocks.0.attn2.to_v.weight
+Adding convolutional LoRA to net.output_blocks.8.2.conv.weight
+Adding convolutional LoRA to net.output_blocks.9.0.in_layers.2.weight
+Adding convolutional LoRA to net.output_blocks.9.0.out_layers.3.weight
+Adding convolutional LoRA to net.output_blocks.9.0.skip_connection.weight
+Adding attention LoRA to net.output_blocks.9.1.transformer_blocks.0.attn1.to_q.weight
+Adding attention LoRA to net.output_blocks.9.1.transformer_blocks.0.attn1.to_k.weight
+Adding attention LoRA to net.output_blocks.9.1.transformer_blocks.0.attn1.to_v.weight
+Adding attention LoRA to net.output_blocks.9.1.transformer_blocks.0.attn2.to_q.weight
+Adding attention LoRA to net.output_blocks.9.1.transformer_blocks.0.attn2.to_k.weight
+Adding attention LoRA to net.output_blocks.9.1.transformer_blocks.0.attn2.to_v.weight
+Adding convolutional LoRA to net.output_blocks.10.0.in_layers.2.weight
+Adding convolutional LoRA to net.output_blocks.10.0.out_layers.3.weight
+Adding convolutional LoRA to net.output_blocks.10.0.skip_connection.weight
+Adding attention LoRA to net.output_blocks.10.1.transformer_blocks.0.attn1.to_q.weight
+Adding attention LoRA to net.output_blocks.10.1.transformer_blocks.0.attn1.to_k.weight
+Adding attention LoRA to net.output_blocks.10.1.transformer_blocks.0.attn1.to_v.weight
+Adding attention LoRA to net.output_blocks.10.1.transformer_blocks.0.attn2.to_q.weight
+Adding attention LoRA to net.output_blocks.10.1.transformer_blocks.0.attn2.to_k.weight
+Adding attention LoRA to net.output_blocks.10.1.transformer_blocks.0.attn2.to_v.weight
+Adding convolutional LoRA to net.output_blocks.11.0.in_layers.2.weight
+Adding convolutional LoRA to net.output_blocks.11.0.out_layers.3.weight
+Adding convolutional LoRA to net.output_blocks.11.0.skip_connection.weight
+Adding attention LoRA to net.output_blocks.11.1.transformer_blocks.0.attn1.to_q.weight
+Adding attention LoRA to net.output_blocks.11.1.transformer_blocks.0.attn1.to_k.weight
+Adding attention LoRA to net.output_blocks.11.1.transformer_blocks.0.attn1.to_v.weight
+Adding attention LoRA to net.output_blocks.11.1.transformer_blocks.0.attn2.to_q.weight
+Adding attention LoRA to net.output_blocks.11.1.transformer_blocks.0.attn2.to_k.weight
+Adding attention LoRA to net.output_blocks.11.1.transformer_blocks.0.attn2.to_v.weight
+Skipping net.out.2.weight for full last conv finetuning
+[LoRA] Optimizing 774 LoRA layers and 44.73M LoRA parameters
+[AutoencoderKL] Loading checkpoint from checkpoints/sd_ae.ckpt
+Loading weights from /home/zhutianshui/workspace/demoProjects/flux/logs/img2depth/obj/base/v0_2026-01-16-15-08-53/checkpoints/last.ckpt
+Weights loaded. Missing keys: 0, Unexpected keys: 0
+Starting Validation...
+[WebDataModuleFromConfig] Loading 76 shards.
+Validation: |          | 0/? [00:00<?, ?it/s]/home/zhutianshui/miniconda3/envs/flux/lib/python3.11/site-packages/webdataset/handlers.py:33: UserWarning: FileNotFoundError(2, 'No such file or directory', '/home/zhutianshui/workspace/demoProjects/flux/data/hypersim/test-val/val-000000.tar')
+  warnings.warn(repr(exn))
+Validation:   0%|          | 0/2 [00:00<?, ?it/s]Validation DataLoader 0:   0%|          | 0/2 [00:00<?, ?it/s]Saving alpha logs with 3200 entries
+Saved alpha_logs.csv
+Validation DataLoader 0:  50%|█████     | 1/2 [00:09<00:09,  0.11it/s]Validation DataLoader 0: 100%|██████████| 2/2 [00:17<00:00,  0.11it/s]Generating visualization...
+Saved 4 images to logs/test_output
+                                                                      Val epoch 1 | Optimizer step 0
+Validation DataLoader 0: 100%|██████████| 2/2 [00:26<00:00,  0.07it/s]Validation DataLoader 0: 100%|██████████| 2/2 [00:27<00:00,  0.07it/s]
+────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────
+     Validate metric           DataLoader 0
+────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────
+       val/delta1           0.17320632934570312
+       val/relabs           1.0474672317504883
+────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────
